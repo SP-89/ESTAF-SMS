@@ -1,2 +1,2 @@
-# Hierarchical-Spatiotemporal-EEG-Analysis-Framework
+# ESTAF-SMS
 ADL,FMA,FMA-UE Prediction
