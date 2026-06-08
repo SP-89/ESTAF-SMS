@@ -15,15 +15,15 @@ from scipy import stats
 import warnings
 from sklearn.feature_selection import SelectKBest, f_regression
 
-# 忽略警告，保持输出整洁
+# Warning，
 warnings.filterwarnings('ignore')
 
-# 设备配置
+# Device config
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(f"🚀 正在使用设备: {device}")
+print(f"🚀 Using device: {device}")
 
 
-# 设置随机种子
+# Set random seed
 def set_seed(seed=42):
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -35,23 +35,23 @@ set_seed(42)
 
 
 # ==========================================
-# 1. 真实数据加载 (Data Loading)
+# 1. Data Loading (Data Loading)
 # ==========================================
 def load_and_preprocess_data(data_dir, excel_path):
     """
-    加载EEG数据并进行预处理
+    Load EEG data with preprocessing
     """
-    print(f"📂 正在从 {data_dir} 加载数据...")
+    print(f"📂 Loading from {data_dir} loading data...")
 
     if not os.path.exists(data_dir) or not os.path.exists(excel_path):
-        print("❌ 数据路径不存在，无法加载真实数据。")
+        print("❌ Data path not found。")
         return None, None, None, None
 
-    # 读取Excel表格
+    # Read Excel table
     df = pd.read_excel(excel_path)
     target_columns = ['ADL', 'FMA', 'upper_FMA']
 
-    # 填充缺失值
+    # Fill missing values
     for col in target_columns:
         if col in df.columns and df[col].isnull().any():
             df[col] = df[col].fillna(df[col].median())
@@ -60,7 +60,7 @@ def load_and_preprocess_data(data_dir, excel_path):
     all_targets = []
     valid_indices = []
 
-    # 加载h5文件
+    # h5File
     for idx, row in df.iterrows():
         patient_id = row['patient_id']
         h5_file = os.path.join(data_dir, f"{patient_id}.h5")
@@ -73,7 +73,7 @@ def load_and_preprocess_data(data_dir, excel_path):
                 if 'psd_features' in f:
                     psd_features = f['psd_features'][:]  # (100, 29, 90)
 
-                    # 简单reshape并标准化，后续特征选择会处理维度
+                    # Reshape and normalize
                     time_features = psd_features.reshape(100, 29 * 90)
                     scaler = StandardScaler()
                     time_features_scaled = scaler.fit_transform(time_features)
@@ -87,24 +87,24 @@ def load_and_preprocess_data(data_dir, excel_path):
             continue
 
     if not all_features:
-        print("❌ 未加载到任何有效数据。")
+        print("❌ No valid data loaded。")
         return None, None, None, None
 
     X = np.array(all_features)  # (N, 100, 2610)
     y = np.array(all_targets)  # (N, 3)
 
-    # 特征选择：降维到 (N, 100, 10)
-    print("⚡ 正在进行特征选择 (SelectKBest)...")
+    # ： (N, 100, 10)
+    print("⚡  (SelectKBest)...")
     n_samples, n_times, n_feats = X.shape
     X_reshaped = X.reshape(n_samples * n_times, n_feats)
-    # 使用平均目标值作为y进行特征选择
+    # targety
     y_reshaped = np.repeat(np.mean(y, axis=1), n_times)
 
-    selector = SelectKBest(f_regression, k=10)  # 降维到10维以符合模型输入
+    selector = SelectKBest(f_regression, k=10)  # 10
     X_selected = selector.fit_transform(X_reshaped, y_reshaped)
     X_final = X_selected.reshape(n_samples, n_times, 10)
 
-    print(f"✅ 数据加载完成: X shape={X_final.shape}, y shape={y.shape}")
+    print(f"✅ Data LoadingDone: X shape={X_final.shape}, y shape={y.shape}")
     return X_final, y, df, valid_indices
 
 
@@ -123,10 +123,10 @@ class EEGDataset(Dataset):
 
 
 # ==========================================
-# 2. 模型定义 (Model Definitions)
+# 2.  (Model Definitions)
 # ==========================================
 
-# --- 2.1 传统机器学习基线 ---
+# --- 2.1  ---
 class SklearnBaseline:
     def __init__(self, model_type='svr'):
         if model_type == 'svr':
@@ -135,7 +135,7 @@ class SklearnBaseline:
             self.model = RandomForestRegressor(n_estimators=100, max_depth=10, random_state=42)
 
     def fit(self, X_train, y_train):
-        # 展平时间维度
+
         X_flat = X_train.reshape(X_train.shape[0], -1)
         self.model.fit(X_flat, y_train)
 
@@ -144,7 +144,7 @@ class SklearnBaseline:
         return self.model.predict(X_flat)
 
 
-# --- 2.2 深度学习基线 (Standard CNN & LSTM) ---
+# --- 2.2  (Standard CNN & LSTM) ---
 class StandardCNN(nn.Module):
     def __init__(self, input_size, seq_len):
         super(StandardCNN, self).__init__()
@@ -154,7 +154,7 @@ class StandardCNN(nn.Module):
             nn.MaxPool1d(2),
             nn.Flatten()
         )
-        # 经过MaxPool1d(2)后，长度减半
+        # MaxPool1d(2)，
         self.fc = nn.Linear(32 * (seq_len // 2), 1)
 
     def forward(self, x):
@@ -254,10 +254,10 @@ class AblationStream1Only(nn.Module):
 
 
 # ==========================================
-# 3. 训练与评估工具 (Utilities)
+# 3.  (Utilities)
 # ==========================================
 def train_and_evaluate(model_name, model_class, X, y, input_size, seq_len, k_folds=5, epochs=100):
-    # 分层K折
+    # K
     y_stratify = np.digitize(y, np.percentile(y, [33, 66]))
     kf = StratifiedKFold(n_splits=k_folds, shuffle=True, random_state=42)
     metrics = {'r': [], 'mae': []}
@@ -266,13 +266,13 @@ def train_and_evaluate(model_name, model_class, X, y, input_size, seq_len, k_fol
         X_train, X_val = X[train_idx], X[val_idx]
         y_train, y_val = y[train_idx], y[val_idx]
 
-        # 传统机器学习
+
         if model_name in ['SVR', 'Random Forest']:
             model = model_class(model_type='svr' if model_name == 'SVR' else 'rf')
             model.fit(X_train, y_train)
             preds = model.predict(X_val)
 
-        # 深度学习
+
         else:
             if model_name == 'Standard CNN':
                 model = model_class(input_size, seq_len).to(device)
@@ -300,7 +300,7 @@ def train_and_evaluate(model_name, model_class, X, y, input_size, seq_len, k_fol
                     loss.backward()
                     optimizer.step()
 
-                # 验证
+
                 model.eval()
                 val_loss = 0
                 with torch.no_grad():
@@ -314,7 +314,7 @@ def train_and_evaluate(model_name, model_class, X, y, input_size, seq_len, k_fol
                     best_val_loss = val_loss
                     best_model_state = model.state_dict()
 
-            # 使用最佳模型进行预测
+
             if best_model_state is not None:
                 model.load_state_dict(best_model_state)
 
@@ -323,7 +323,7 @@ def train_and_evaluate(model_name, model_class, X, y, input_size, seq_len, k_fol
                 val_x = torch.FloatTensor(X_val).to(device)
                 preds = model(val_x).cpu().numpy()
 
-        # 计算指标
+
         r, _ = stats.pearsonr(y_val, preds)
         mae = mean_absolute_error(y_val, preds)
 
@@ -334,35 +334,35 @@ def train_and_evaluate(model_name, model_class, X, y, input_size, seq_len, k_fol
 
 
 # ==========================================
-# 4. 主程序 (Main Execution)
+# 4.  (Main Execution)
 # ==========================================
 if __name__ == "__main__":
-    # 配置路径 (用户提供)
+    # Configure paths ()
     data_directory = "h5_files"
-    excel_file_path = "总表.xlsx"
+    excel_file_path = "metadata.xlsx"
 
-    # 1. 加载真实数据
+    # 1. 
     X, y_all, _, _ = load_and_preprocess_data(data_directory, excel_file_path)
 
     if X is None:
-        print("程序终止：无法加载数据。")
+        print("Program：loading data。")
         exit(1)
 
-    # 获取真实数据的 sequence length
+    #  sequence length
     # X.shape = (n_samples, seq_len, feat_dim)
     SEQ_LEN = X.shape[1]
     FEAT_DIM = X.shape[2]
     EPOCHS = 150
 
-    print(f"📊 数据维度: 样本数={X.shape[0]}, 时间步={SEQ_LEN}, 特征数={FEAT_DIM}")
+    print(f"📊 : samples={X.shape[0]}, ={SEQ_LEN}, ={FEAT_DIM}")
 
-    # y_all 形状 (N, 3), 对应 [ADL, FMA, upper_FMA]
-    # 我们按照论文顺序调整: Upper FMA (2), Total FMA (1), ADL (0)
+    # y_all  (N, 3),  [ADL, FMA, upper_FMA]
+    # : Upper FMA (2), Total FMA (1), ADL (0)
     tasks = ['Upper FMA', 'Total FMA', 'ADL']
     task_indices = [2, 1, 0]
 
     print("\n" + "=" * 60)
-    print("🧪 实验 1: 不同模型在三个临床指标上的性能比较")
+    print("🧪 Experiment 1: ")
     print("=" * 60)
 
     models_config = [
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     final_comparison_table = {}
 
     for task_name, task_idx in zip(tasks, task_indices):
-        print(f"\n正在评估任务: {task_name} ...")
+        print(f"\nEvaluating task: {task_name} ...")
         y_task = y_all[:, task_idx]
 
         task_results = {}
@@ -392,7 +392,7 @@ if __name__ == "__main__":
         final_comparison_table[task_name] = task_results
 
     print("\n" + "=" * 60)
-    print("🧪 实验 2: 消融实验 (Ablation Study) - 仅 Upper FMA")
+    print("🧪 Experiment 2: Experiment (Ablation Study) -  Upper FMA")
     print("=" * 60)
 
     ablation_config = [
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     ablation_results = []
 
     for model_name, model_class in ablation_config:
-        print(f"评估变体: {model_name} ...")
+        print(f"Evaluating variant: {model_name} ...")
         mean, std = train_and_evaluate(model_name, model_class, X, y_upper, FEAT_DIM, SEQ_LEN, epochs=EPOCHS)
         ablation_results.append({
             'Model': model_name,
@@ -415,10 +415,10 @@ if __name__ == "__main__":
         })
 
     # ==========================================
-    # 5. 生成 Latex 表格内容 (Output Latex)
+    # 5. Generate LaTeX table (Output Latex)
     # ==========================================
     print("\n\n" + "=" * 60)
-    print("📝 生成的 Latex 代码 (直接复制到论文中)")
+    print("📝  Latex  (Copy to paper)")
     print("=" * 60)
 
     # Table 1: Performance Comparison
@@ -471,4 +471,4 @@ if __name__ == "__main__":
     print("\\end{tabular}")
     print("\\end{table}")
 
-    print("\n✅ 所有实验运行完毕！Latex表格已生成。")
+    print("\n✅ AllExperiment！LatexTables generated。")

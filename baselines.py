@@ -171,7 +171,7 @@ def run_cv(model_cls, X, y, ys, cols, epochs=150, patience=20):
 
 # ====== MAIN ======
 if __name__ == '__main__':
-    import os; os.chdir(r'D:\PythonProjects\EEG\EEG\model')
+    import os; os.chdir(ros.path.join(os.path.dirname(__file__), "model"))
     print('Loading data...')
     X, y, ys = load_data('h5_files', '\u603b\u8868.xlsx')
     print(f'X: {X.shape}, y: {y.shape}')
@@ -242,7 +242,7 @@ print('FBCNet + TSCeption ready')
 
 # ====== MAIN ======
 if __name__ == '__main__':
-    import os; os.chdir(r'D:\PythonProjects\EEG\EEG\model')
+    import os; os.chdir(ros.path.join(os.path.dirname(__file__), "model"))
     print('Loading data...')
     X, y, ys = load_data('h5_files', 'metadata.xlsx')
     print(f'X: {X.shape}, y: {y.shape}')
