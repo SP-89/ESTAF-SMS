@@ -1,0 +1,41 @@
+# Data files
+*.mat
+*.h5
+*.npy
+*.pth
+*.xlsx
+*.csv
+
+# Logs
+*.log
+*.txt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Figures (re-generatable)
+shap_results/
+scatter_plots/
+psd_visualizations_output/
+error_analysis/
+
+# Temp
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
