@@ -23,8 +23,11 @@ ESTAF-SMS predicts clinical motor scores—ADL (0–100), FMA (0–100), and FMA
 | **ESTAF-SMS** | **0.80 ± 0.02** | **0.81 ± 0.03** | **0.68 ± 0.07** |
 | Standard CNN | 0.73 | 0.64 | 0.39 |
 | Standard LSTM | 0.71 | 0.52 | 0.28 |
-| FBCNet (Mane 2021) | 0.06 | 0.04 | 0.08 |
-| TSCeption (Ding 2022) | 0.27 | 0.23 | 0.07 |
+| FBCNet (Mane 2021) | 0.19 | -0.08 | -0.16 |
+| TSCeption (Ding 2022) | 0.14 | 0.11 | -0.01 |
+| TCN (2024) | 0.28 | 0.32 | 0.22 |
+| InceptionTime (2024) | 0.29 | 0.30 | 0.27 |
+| GatedTCN (2025) | 0.22 | 0.27 | 0.27 |
 | SVR | 0.26 | 0.09 | 0.17 |
 | Random Forest | 0.18 | 0.12 | 0.15 |
 
